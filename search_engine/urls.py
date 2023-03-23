@@ -10,5 +10,5 @@ urlpatterns = [
 
     path("admin/", admin.site.urls),
 
-    path("/api/search/", include("search.urls"), name="search"),
+    path("api/search/", include("search.urls"), name="search"),
 ]
