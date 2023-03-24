@@ -1,6 +1,7 @@
 """Page Uploader module."""
 import json
 from core.models import Page
+import time
 
 def upload_pages(pages_data):
     """Uploads pages to the database."""
@@ -9,8 +10,9 @@ def upload_pages(pages_data):
         page, created = Page.objects.get_or_create(url=url)
 
         page.title = page_data['title']
-        page.headings = page_data['headings']
-        page.body = page_data['body']
+        page.headers = page_data['headings']
+        page.text = page_data['body']
+
         page.save()
 
         if created:
