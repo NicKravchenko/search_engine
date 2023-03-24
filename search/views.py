@@ -26,8 +26,6 @@ class SearchListView(APIView):
         if not query:
             return Response({"error": "No query specified"})
 
-        print(query)
-
         pages = Page.objects.filter(Q(title__icontains=query) | Q(text__icontains=query))
 
         results = []

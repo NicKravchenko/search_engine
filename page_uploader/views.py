@@ -7,6 +7,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from core.models import Page
 from search.serializers import PageSerializer
+from page_uploader.uploader import upload_pages
+import json
 
 
 class UploadView(APIView):
@@ -20,9 +22,11 @@ class UploadView(APIView):
         },
     )
     def put(self, request, format=None):
-        file_obj = request.FILES.get('file')
-        if (file_obj):
-            print("File uploaded")
-            print(file_obj.read())
+        file_obj = request.FILES.get("file")
+        pages_data = json.loads(file_obj.read())
+        if file_obj:
+            # print("File uploaded")
+            # print(pages_data)
+            upload_pages(pages_data)
 
         return Response({"results": "Pages uploaded"})
