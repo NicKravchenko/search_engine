@@ -6,12 +6,14 @@ def upload_pages(pages_data):
     """Uploads pages to the database."""
 
     for url, page_data in pages_data.items():
-        # Create a new Page object and set its fields
-        page = Page()
-        page.url = url
-        page.title = page_data['title']
-        page.headers = ', '.join(page_data['headings'])
-        page.text = page_data['body']
+        page, created = Page.objects.get_or_create(url=url)
 
-        # Save the new Page object to the database
+        page.title = page_data['title']
+        page.headings = page_data['headings']
+        page.body = page_data['body']
         page.save()
+
+        if created:
+            print(f"Created new page: {url}")
+        else:
+            print(f"Updated page: {url}")

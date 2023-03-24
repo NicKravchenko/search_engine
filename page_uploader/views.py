@@ -12,6 +12,8 @@ import json
 
 
 class UploadView(APIView):
+    """Uploads pages to the database."""
+
     @extend_schema(
         operation_id="upload_file",
         request={
@@ -22,11 +24,15 @@ class UploadView(APIView):
         },
     )
     def put(self, request, format=None):
-        file_obj = request.FILES.get("file")
-        pages_data = json.loads(file_obj.read())
-        if file_obj:
-            # print("File uploaded")
-            # print(pages_data)
-            upload_pages(pages_data)
+        """Uploads pages to the database."""
+        try:
+            file_obj = request.FILES.get("file")
+            pages_data = json.loads(file_obj.read())
+            if file_obj:
+                upload_pages(pages_data)
 
-        return Response({"results": "Pages uploaded"})
+            return Response({"results": "Pages uploaded"})
+        except Exception as e:
+            print(e)
+            return Response({"error": str(e)})
+
