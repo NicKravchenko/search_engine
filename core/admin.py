@@ -1,3 +1,6 @@
-from django.contrib import admin
+"""Admin configuration for the core app."""
 
-# Register your models here.
+from django.contrib import admin
+from core.models import Page
+
+admin.site.register(Page)
