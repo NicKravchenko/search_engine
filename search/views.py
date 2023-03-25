@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from core.models import Page
 from search.serializers import PageSerializer
 
+from django.db.models.functions import Length
+
 
 class SearchListView(APIView):
     """Searches the database for pages containing the given query."""
@@ -39,12 +41,19 @@ class SearchListView(APIView):
 def processSearch(query):
     """Processes the search query and returns the results."""
 
-    pages = Page.objects.filter(Q(title__icontains=query) | Q(text__icontains=query))
+    pages = (
+        Page.objects.filter(
+            Q(title__icontains=query)
+            | Q(text__icontains=query)
+            | Q(headers__icontains=query)
+        )
+        .annotate(url_length=Length("url"))
+        .order_by("url_length")
+    )
 
     results = []
     for page in pages:
         print(page.url)
-
         results.append({"url": page.url, "title": page.title, "content": page.text})
 
     return results

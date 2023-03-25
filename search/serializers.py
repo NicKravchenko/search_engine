@@ -9,4 +9,4 @@ class PageSerializer(ModelSerializer):
 
     class Meta:
         model = Page
-        fields = ["url", "title", "text"]
+        fields = "__all__"

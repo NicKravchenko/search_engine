@@ -1,5 +1,7 @@
-from drf_spectacular.utils import extend_schema
+"""Views for the page_uploader app."""
+from search.serializers import PageSerializer
 
+from drf_spectacular.utils import extend_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from page_uploader.uploader import processFile
@@ -7,6 +9,8 @@ from page_uploader.uploader import processFile
 
 class UploadView(APIView):
     """Uploads pages to the database."""
+
+    serializer_class = PageSerializer
 
     @extend_schema(
         request={
