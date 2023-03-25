@@ -27,15 +27,24 @@ class SearchListView(APIView):
     def get(self, request, format=None):
         """Searches the database for pages containing the given query."""
         query = request.GET.get("q", None)
+
         if not query:
             return Response({"error": "No query specified"})
 
-        pages = Page.objects.filter(
-            Q(title__icontains=query) | Q(text__icontains=query)
-        )
-
-        results = []
-        for page in pages:
-            results.append({"url": page.url, "title": page.title, "content": page.text})
+        results = processSearch(query)
 
         return Response({"results": results})
+
+
+def processSearch(query):
+    """Processes the search query and returns the results."""
+
+    pages = Page.objects.filter(Q(title__icontains=query) | Q(text__icontains=query))
+
+    results = []
+    for page in pages:
+        print(page.url)
+
+        results.append({"url": page.url, "title": page.title, "content": page.text})
+
+    return results

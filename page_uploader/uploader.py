@@ -53,14 +53,12 @@ def upload_pages(pages_data):
     for url, page_data in pages_data.items():
         try:
             page, created = Page.objects.get_or_create(url=url)
-
             page = process_page_data(page, page_data)
 
             if page.title == "No title":
                 page.delete()
                 print(f"Page was corupted: {url}")
                 continue
-
             page.save()
 
             if created:
