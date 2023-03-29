@@ -8,7 +8,8 @@ from rest_framework.response import Response
 from core.models import Page
 from search.serializers import PageSerializer
 
-from django.db.models.functions import Length
+from django.contrib.postgres.search import SearchQuery, SearchRank
+from django.db.models import F
 
 
 class SearchListView(APIView):
@@ -38,34 +39,24 @@ class SearchListView(APIView):
         return Response({"results": results})
 
 
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
-
-
 def processSearch(query):
     """Processes the search query and returns the results."""
-    # search_vector = SearchVector("title", "text")
-    search_vector = (
-        SearchVector("headers", weight="B")
-        + SearchVector("title", weight="A")
-        + SearchVector("text", weight="C")
-    )
-
     search_query = SearchQuery(query)
 
     pages = (
         Page.objects.annotate(
-            search=search_vector,
-            rank=SearchRank(search_vector, search_query),
+            rank=SearchRank(F("vector_column"), search_query),
         )
-        .filter(search=search_query)
+        .filter(vector_column=search_query)
         .order_by("-rank")
-        .distinct()[:5]
+        .distinct()[:40]
     )
+
+    # pages = Page.objects.filter(vector_column=search_query).distinct()[:5]
 
     results = []
     for page in pages:
         print(page.url)
-        print(page.vector_column)
         results.append({"url": page.url, "title": page.title, "content": page.text})
 
     return results

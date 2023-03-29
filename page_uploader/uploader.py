@@ -31,7 +31,9 @@ def upload_pages(pages_data):
                 page.delete()
                 print(f"Page was corupted: {url}")
                 continue
+
             page.save()
+            page.update_search_vector()
 
             if created:
                 print(f"Created new page: {url}")
@@ -39,6 +41,7 @@ def upload_pages(pages_data):
                 print(f"Updated page: {url}")
         except Exception as e:
             print(f"Error uploading page: {url} - {e}")
+
             traceback.print_exc()
 
 
