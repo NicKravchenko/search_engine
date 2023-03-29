@@ -31,7 +31,9 @@ def upload_pages(pages_data):
                 page.delete()
                 print(f"Page was corupted: {url}")
                 continue
+
             page.save()
+            page.update_search_vector()
 
             if created:
                 print(f"Created new page: {url}")
@@ -39,6 +41,7 @@ def upload_pages(pages_data):
                 print(f"Updated page: {url}")
         except Exception as e:
             print(f"Error uploading page: {url} - {e}")
+
             traceback.print_exc()
 
 
@@ -48,6 +51,7 @@ def processZipFile(file):
     with zipfile.ZipFile(file) as archive:
         for name in archive.namelist():
             file = archive.open(name)
+
             if file:
                 processFile(file)
         return
@@ -55,10 +59,13 @@ def processZipFile(file):
 
 def saveJsonFile(file):
     """Saves a json file to the database."""
-
-    pages_data = json.loads(file.read())
-    upload_pages(pages_data)
-    # print(pages_data)
+    try:
+        pages_data = json.loads(file.read())
+        upload_pages(pages_data)
+        # print(pages_data)
+    except Exception as e:
+        print(f"Error uploading file: {file.name} - {e}")
+        traceback.print_exc()
 
 
 def processFile(file):
