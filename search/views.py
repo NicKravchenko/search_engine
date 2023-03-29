@@ -38,22 +38,34 @@ class SearchListView(APIView):
         return Response({"results": results})
 
 
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+
+
 def processSearch(query):
     """Processes the search query and returns the results."""
+    # search_vector = SearchVector("title", "text")
+    search_vector = (
+        SearchVector("headers", weight="B")
+        + SearchVector("title", weight="A")
+        + SearchVector("text", weight="C")
+    )
+
+    search_query = SearchQuery(query)
 
     pages = (
-        Page.objects.filter(
-            Q(title__icontains=query)
-            | Q(text__icontains=query)
-            | Q(headers__icontains=query)
+        Page.objects.annotate(
+            search=search_vector,
+            rank=SearchRank(search_vector, search_query),
         )
-        .annotate(url_length=Length("url"))
-        .order_by("url_length")
+        .filter(search=search_query)
+        .order_by("-rank")
+        .distinct()[:5]
     )
 
     results = []
     for page in pages:
         print(page.url)
+        print(page.vector_column)
         results.append({"url": page.url, "title": page.title, "content": page.text})
 
     return results
