@@ -1,15 +1,15 @@
 """Search views."""
 
-from django.db.models import Q
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema, OpenApiParameter, inline_serializer
 
+from django.db.models import F
+from rest_framework import serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from core.models import Page
 from search.serializers import PageSerializer
 
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import F
 
 
 class SearchListView(APIView):
@@ -25,7 +25,23 @@ class SearchListView(APIView):
             )
         ],
         operation_id="search-get",
-        responses={200: PageSerializer(many=True)},
+        responses={
+            200: inline_serializer(
+                name='CustomResponse',
+                fields={
+                    'results': serializers.ListField(
+                        child=inline_serializer(
+                            name='ResultItem',
+                            fields={
+                                'url': serializers.URLField(),
+                                'title': serializers.CharField(),
+                                'content': serializers.CharField(),
+                            }
+                        )
+                    )
+                }
+            )
+        },
     )
     def get(self, request, format=None):
         """Searches the database for pages containing the given query."""
@@ -34,29 +50,38 @@ class SearchListView(APIView):
         if not query:
             return Response({"error": "No query specified"})
 
-        results = processSearch(query)
-
+        pages = processSearch(query)
+        print(pages)
+        # results = PageResultSerializer(pages, many=True)
+        results = pages
         return Response({"results": results})
 
 
 def processSearch(query):
     """Processes the search query and returns the results."""
+
     search_query = SearchQuery(query)
+    rank_annotation = SearchRank(F("vector_column"), search_query)
 
     pages = (
         Page.objects.annotate(
-            rank=SearchRank(F("vector_column"), search_query),
+            rank=rank_annotation,
         )
         .filter(vector_column=search_query)
         .order_by("-rank")
         .distinct()[:40]
     )
 
-    # pages = Page.objects.filter(vector_column=search_query).distinct()[:5]
+    results = getPages(pages)
 
+    return results
+
+
+def getPages(pages):
     results = []
     for page in pages:
         print(page.url)
-        results.append({"url": page.url, "title": page.title, "content": page.text})
-
+        results.append(
+            {"url": page.url, "title": page.title, "content": page.text[:2000]}
+        )
     return results
